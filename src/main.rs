@@ -11,7 +11,7 @@ mod day16;
 
 fn main() {
     {
-        let lines: Vec<_> = include_str!("../data/day16_sample.txt").lines().collect();
+        let lines: Vec<_> = include_str!("../data/day16.txt").lines().collect();
         let solution = day16::solve(&lines);
         println!("Day 16: {:?}", solution);
     }
