@@ -2,6 +2,7 @@
 #[macro_use]
 extern crate lazy_static;
 
+#[allow(unused_imports)]
 #[macro_use]
 extern crate itertools;
 
@@ -10,10 +11,10 @@ mod bitmap;
 #[allow(dead_code)]
 mod twod;
 
-mod day19;
+mod day21;
 
 fn main() {
-    let lines: Vec<_> = include_str!("../data/day19.txt").lines().collect();
-    let solution = day19::solve(&lines);
-    println!("Day 19: {:?}", solution);
+    let lines: Vec<_> = include_str!("../data/day21.txt").lines().collect();
+    let solution = day21::solve(&lines);
+    println!("Day 21: {:?}", solution);
 }
