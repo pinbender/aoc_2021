@@ -1,6 +1,5 @@
 use itertools::Itertools;
 use tuple::*;
-use std::collections::HashSet;
 
 pub fn solve(lines: &[&str]) -> (usize, usize) {
     let records = parse(lines);
@@ -23,10 +22,10 @@ fn solve_csg(relevant_box: &AVolume, records: impl Iterator<Item=(bool, AVolume)
         (!b.is_empty()).then(|| (on, b))
     });
 
-    let mut voxels = HashSet::new();
-    let mut negative = HashSet::new();
-    voxels.insert(relevant_box.clone());
-    let mut buffer = HashSet::new();
+    let mut voxels = Vec::new();
+    let mut negative = Vec::new();
+    voxels.push(relevant_box.clone());
+    let mut buffer = Vec::new();
 
     let mut background = false;
 
@@ -36,22 +35,31 @@ fn solve_csg(relevant_box: &AVolume, records: impl Iterator<Item=(bool, AVolume)
         let on_count = if background { remaining } else { total - remaining };
 
         println!("{} -> {:?} of {}, on={}", on, operator, voxels.len(), on_count);
-        for v in voxels.drain() {
-            buffer.extend(v.subtract(&operator).filter(|b| !b.is_empty()));
+        for v in voxels.drain(..) {
+            if v.overlaps(&operator) {
+                buffer.extend(v.subtract(&operator).filter(|b| !b.is_empty()));
+            } else {
+                buffer.push(v);
+            }
         }
         std::mem::swap(&mut voxels, &mut buffer);
         if on == background {
-            negative.insert(operator);
+            negative.push(operator);
             for v in voxels.iter() {
-                for n in negative.drain() {
-                    buffer.extend(n.subtract(&v).filter(|b| !b.is_empty()));
+                for n in negative.drain(..) {
+                    if n.overlaps(v) {
+                        buffer.extend(n.subtract(&v).filter(|b| !b.is_empty()));
+                    }
+                    else {
+                        buffer.push(n);
+                    }
                 }
                 std::mem::swap(&mut negative, &mut buffer);
             }
-            voxels.extend(negative.drain());
+            voxels.extend(negative.drain(..));
         }
         if voxels.is_empty() {
-            voxels.insert(relevant_box.clone());
+            voxels.push(relevant_box.clone());
             background = !background;
         }
     }
@@ -132,6 +140,15 @@ impl AVolume {
             max: max3(self.max, other.max)
         }
     }
+    fn overlaps(&self, other: &Self) -> bool {
+        self.min.0 < other.max.0 &&
+        self.min.1 < other.max.1 &&
+        self.min.2 < other.max.2 &&
+        self.max.0 > other.min.0 &&
+        self.max.1 > other.min.1 &&
+        self.max.2 > other.min.2
+    }
+
     fn is_empty(&self) -> bool {
         self.volume() <= 0
     }
